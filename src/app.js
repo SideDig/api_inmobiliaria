@@ -6,6 +6,7 @@ import itemsRoutes from './routes/itemsPersonalizable.routes.js';
 import imagenesRoutes from './routes/imgPropiedades.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 
 const app = express();
 import morgan from 'morgan'
