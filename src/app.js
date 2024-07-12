@@ -10,6 +10,12 @@ import cookieParser from 'cookie-parser';
 const app = express();
 import morgan from 'morgan'
 
+app.use(cors({
+    origin: "http://localhost:8081",
+    methods: ['GET', 'PUT', 'POST', 'DELETE'],
+    credentials: true,
+}));
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan('dev'))

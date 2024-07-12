@@ -4,19 +4,21 @@ export const obtenerPropiedades = async (req, res) => {
   try {
     const [rows] = await conexion.query(`
         SELECT 
-          p.*, 
-          a.id AS agente_id, 
-          a.nombre AS agente_nombre, 
-          a.email AS agente_email, 
-          a.telefono AS agente_telefono,
-          a.total_ventas AS agente_total_ventas,
-          (SELECT COUNT(*) FROM propiedades WHERE agente_id = a.id) AS agente_num_propiedades
+            p.*, 
+            u.id AS agente_id, 
+            u.nombre AS agente_nombre, 
+            u.email AS agente_email, 
+            u.telefono AS agente_telefono,
+            u.total_ventas AS agente_total_ventas,
+            (SELECT COUNT(*) FROM propiedades WHERE agente_id = u.id) AS agente_num_propiedades
         FROM 
-          propiedades p
+            propiedades p
         JOIN 
-          agentes a 
+            usuarios u 
         ON 
-          p.agente_id = a.id
+            p.agente_id = u.id
+        WHERE 
+            u.rol = 'agente';
       `);
 
     const propiedades = rows.map(
@@ -50,7 +52,8 @@ export const obtenerPropiedades = async (req, res) => {
 
 export const obtenerPropiedad = async (req, res) => {
   try {
-    const [rows] = await conexion.query(`
+    const [rows] = await conexion.query(
+      `
         SELECT 
           p.*, 
           a.id AS agente_id, 
@@ -67,11 +70,13 @@ export const obtenerPropiedad = async (req, res) => {
           p.agente_id = a.id
         WHERE
         p.id = ?
-      `, [req.params.id]);
+      `,
+      [req.params.id]
+    );
 
-      if (rows.length === 0) {
-        return res.status(404).send("Propiedad no encontrada");
-      }
+    if (rows.length === 0) {
+      return res.status(404).send("Propiedad no encontrada");
+    }
 
     const propiedad = rows.map(
       ({
@@ -95,7 +100,6 @@ export const obtenerPropiedad = async (req, res) => {
       })
     );
     res.json(propiedad);
-    
   } catch (error) {
     console.error(error);
     res.status(500).send("No aparecen la propiedad");
