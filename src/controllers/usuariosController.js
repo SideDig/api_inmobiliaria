@@ -39,15 +39,57 @@ export const insertarUsuario = async (req, res) => {
 
 export const eliminarUsuario = async (req, res) => {
   try {
-    const [eliminar] = await conexion.query("DELETE FROM clientes WHERE id = ?", [
-      req.params.id
-    ]);
-    if (eliminar.affectedRows <= 0) return res.status(404).json({
-      menssage: 'No se encontro el cliente'
-    })
-    res.send('Cliente eliminado')
+    const [eliminar] = await conexion.query(
+      "DELETE FROM clientes WHERE id = ?",
+      [req.params.id]
+    );
+    if (eliminar.affectedRows <= 0)
+      return res.status(404).json({
+        menssage: "No se encontro el cliente",
+      });
+    res.send("Cliente eliminado");
   } catch (error) {
     console.error(error);
     res.status(500).send("No se pudo eliminar el cliente");
+  }
+};
+
+export const completarDatosPersonales = async (req, res) => {
+  const {
+    nombre_completo,
+    telefono,
+    curp,
+    estado,
+    ciudad,
+    direccion,
+    codigo_postal,
+  } = req.body;
+  const { id } = req.user;
+
+  try {
+    const query = `
+      UPDATE usuarios
+      SET nombre_completo = ?, telefono = ?, curp = ?,
+          estado = ?, ciudad = ?, direccion = ?, codigo_postal = ?,
+      WHERE id = ?
+    `;
+    await conexion.execute(query, [
+      nombre_completo,
+      telefono,
+      curp,
+      estado,
+      ciudad,
+      direccion,
+      codigo_postal,
+      id,
+    ]);
+
+   
+    res.json({ message: "Datos adicionales actualizados correctamente" });
+  } catch (error) {
+    console.error("Error al completar datos adicionales:", error);
+    res
+      .status(500)
+      .json({ message: "Ocurrió un error al completar los datos adicionales" });
   }
 };
