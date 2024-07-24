@@ -55,22 +55,19 @@ export const eliminarUsuario = async (req, res) => {
 };
 
 export const completarDatosPersonales = async (req, res) => {
-  const {
-    nombre_completo,
-    telefono,
-    curp,
-    estado,
-    ciudad,
-    direccion,
-    codigo_postal,
-  } = req.body;
+  const { nombre_completo, telefono, curp, estado, ciudad, direccion } = req.body;
+
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: "Usuario no autenticado." });
+  }
+
   const { id } = req.user;
 
   try {
     const query = `
       UPDATE usuarios
       SET nombre_completo = ?, telefono = ?, curp = ?,
-          estado = ?, ciudad = ?, direccion = ?, codigo_postal = ?,
+          estado = ?, ciudad = ?, direccion = ?
       WHERE id = ?
     `;
     await conexion.execute(query, [
@@ -80,11 +77,9 @@ export const completarDatosPersonales = async (req, res) => {
       estado,
       ciudad,
       direccion,
-      codigo_postal,
       id,
     ]);
 
-   
     res.json({ message: "Datos adicionales actualizados correctamente" });
   } catch (error) {
     console.error("Error al completar datos adicionales:", error);
