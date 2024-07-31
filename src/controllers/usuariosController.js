@@ -88,3 +88,51 @@ export const completarDatosPersonales = async (req, res) => {
       .json({ message: "Ocurrió un error al completar los datos adicionales" });
   }
 };
+
+export const completarPreferenciasUsuario = async (req, res) => {
+  const { ubicacion_casa, num_recamaras, precio_desde, precio_hasta} = req.body;
+
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: "Usuario no autenticado." });
+  }
+
+  const { id } = req.user;
+
+  try {
+    const query = `
+      UPDATE usuarios
+      SET ubicacion_casa = ?, num_recamaras = ?, precio_desde = ?,
+          precio_hasta = ?
+      WHERE id = ?
+    `;
+    await conexion.execute(query, [
+      ubicacion_casa,
+      num_recamaras,
+      precio_desde,
+      precio_hasta,
+      id,
+    ]);
+
+    res.json({ message: "Preferencias actualizadas correctamente" });
+  } catch (error) {
+    console.error("Error al completar datos adicionales:", error);
+    res
+      .status(500)
+      .json({ message: "Ocurrió un error al completar los datos adicionales" });
+  }
+};
+
+
+export const obtenerPropiedadesPorUbicacion = async (req, res) => {
+  const { ubicacion } = req.query;
+  console.log('Request received for obtenerPropiedadesPorUbicacion with ubicacion:', ubicacion);
+
+  try {
+    const [rows] = await conexion.query("SELECT * FROM propiedades WHERE ubicacion = ?", [ubicacion]);
+    console.log('Database response:', rows);
+    res.json(rows);
+  } catch (error) {
+    console.error("Error al obtener propiedades por ubicación:", error);
+    res.status(500).send("No se pudieron obtener las propiedades");
+  }
+};
