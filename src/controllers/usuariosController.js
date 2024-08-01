@@ -124,11 +124,34 @@ export const completarPreferenciasUsuario = async (req, res) => {
 
 
 export const obtenerPropiedadesPorUbicacion = async (req, res) => {
-  const { ubicacion } = req.query;
-  console.log('Request received for obtenerPropiedadesPorUbicacion with ubicacion:', ubicacion);
+  const { ubicacion, precioDesde, precioHasta, numRecamaras } = req.query;
+  console.log('Request received for obtenerPropiedadesPorUbicacion with ubicacion:', ubicacion, 'precioDesde:', precioDesde, 'precioHasta:', precioHasta, 'numRecamaras:', numRecamaras);
 
   try {
-    const [rows] = await conexion.query("SELECT * FROM propiedades WHERE ubicacion = ?", [ubicacion]);
+    let query = "SELECT * FROM propiedades WHERE 1=1";
+    let queryParams = [];
+
+    if (ubicacion) {
+      query += " AND ubicacion = ?";
+      queryParams.push(ubicacion);
+    }
+
+    if (precioDesde) {
+      query += " AND precio >= ?";
+      queryParams.push(precioDesde);
+    }
+
+    if (precioHasta) {
+      query += " AND precio <= ?";
+      queryParams.push(precioHasta);
+    }
+
+    if (numRecamaras) {
+      query += " AND habitaciones = ?";
+      queryParams.push(numRecamaras);
+    }
+
+    const [rows] = await conexion.query(query, queryParams);
     console.log('Database response:', rows);
     res.json(rows);
   } catch (error) {
@@ -136,3 +159,9 @@ export const obtenerPropiedadesPorUbicacion = async (req, res) => {
     res.status(500).send("No se pudieron obtener las propiedades");
   }
 };
+
+
+
+
+
+
