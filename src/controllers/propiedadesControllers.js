@@ -52,59 +52,60 @@ export const obtenerPropiedades = async (req, res) => {
 
 export const obtenerPropiedad = async (req, res) => {
   try {
+    const propiedadId = req.params.id;
+    console.log('Request to obtenerPropiedad with id:', propiedadId);
+
     const [rows] = await conexion.query(
       `
         SELECT 
           p.*, 
-          a.id AS agente_id, 
-          a.nombre AS agente_nombre, 
-          a.email AS agente_email, 
-          a.telefono AS agente_telefono,
-          a.total_ventas AS agente_total_ventas,
-          (SELECT COUNT(*) FROM propiedades WHERE agente_id = a.id) AS agente_num_propiedades
+          u.id AS agente_id, 
+          u.nombre AS agente_nombre, 
+          u.email AS agente_email, 
+          u.telefono AS agente_telefono,
+          u.total_ventas AS agente_total_ventas,
+          u.num_propiedades AS agente_num_propiedades
         FROM 
           propiedades p
         JOIN 
-          agentes a 
+          usuarios u 
         ON 
-          p.agente_id = a.id
+          p.agente_id = u.id
         WHERE
-        p.id = ?
+          p.id = ?
+        AND
+          u.rol = 'agente'
       `,
-      [req.params.id]
+      [propiedadId]
     );
 
     if (rows.length === 0) {
+      console.log('Propiedad no encontrada'); 
       return res.status(404).send("Propiedad no encontrada");
     }
 
-    const propiedad = rows.map(
-      ({
-        agente_id,
-        agente_nombre,
-        agente_email,
-        agente_telefono,
-        agente_total_ventas,
-        agente_num_propiedades,
-        ...propiedad
-      }) => ({
-        ...propiedad,
-        agente: {
-          id: agente_id,
-          nombre: agente_nombre,
-          email: agente_email,
-          telefono: agente_telefono,
-          total_ventas: agente_total_ventas,
-          num_propiedades: agente_num_propiedades,
-        },
-      })
-    );
+    const propiedad = rows.map(row => ({
+      ...row,
+      agente: {
+        id: row.agente_id,
+        nombre: row.agente_nombre,
+        email: row.agente_email,
+        telefono: row.agente_telefono,
+        total_ventas: row.agente_total_ventas,
+        num_propiedades: row.agente_num_propiedades,
+      },
+    }))[0];
+
     res.json(propiedad);
   } catch (error) {
-    console.error(error);
-    res.status(500).send("No aparecen la propiedad");
+    console.error('Error en obtenerPropiedad:', error); 
+    res.status(500).send("Error al obtener la propiedad");
   }
 };
+
+
+
+
 
 export const insertarPropiedad = async (req, res) => {
   try {

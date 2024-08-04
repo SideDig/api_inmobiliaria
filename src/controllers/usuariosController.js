@@ -147,8 +147,13 @@ export const obtenerPropiedadesPorUbicacion = async (req, res) => {
     }
 
     if (numRecamaras) {
-      query += " AND habitaciones = ?";
-      queryParams.push(numRecamaras);
+      if (numRecamaras < 5) {
+        query += " AND habitaciones = ?";
+        queryParams.push(numRecamaras);
+      } else {
+        query += " AND habitaciones >= ?";
+        queryParams.push(numRecamaras);
+      }
     }
 
     const [rows] = await conexion.query(query, queryParams);
@@ -159,6 +164,8 @@ export const obtenerPropiedadesPorUbicacion = async (req, res) => {
     res.status(500).send("No se pudieron obtener las propiedades");
   }
 };
+
+
 
 
 
