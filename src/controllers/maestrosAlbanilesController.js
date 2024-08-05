@@ -1,5 +1,21 @@
 import { conexion } from "../db.js";
 
+export const obtenerMaestrosPorItem = async (req, res) => {
+  try {
+    const [rows] = await conexion.query(
+      `SELECT ma.id, ma.nombre, ma.telefono, ma.descripcion, ma.foto_url, ma.trabajos_realizados, ma.costo_mano_obra, tma.costo_estimado, tma.tiempo_estimado 
+      FROM maestros_albaniles ma
+      JOIN trabajos_maestros_albaniles tma ON ma.id = tma.maestro_albanil_id
+      WHERE tma.item_personalizable_id = ?`,
+      [req.params.itemId]
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("No se pudieron obtener los maestros albañiles para el ítem.");
+  }
+};
+
 export const obtenermaestrosAlbaniles = async (req, res) => {
   try {
     const [rows] = await conexion.query("SELECT * FROM maestros_albaniles");
