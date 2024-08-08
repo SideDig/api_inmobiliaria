@@ -5,6 +5,7 @@ import propiedadesRoutes from "./routes/propiedades.routes.js";
 import itemsRoutes from "./routes/itemsPersonalizable.routes.js";
 import imagenesRoutes from "./routes/imgPropiedades.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import presupuestosRoutes from "./routes/presupuestos.routes.js"
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import morgan from "morgan";
@@ -32,6 +33,7 @@ app.use("/routes", propiedadesRoutes);
 app.use("/routes", itemsRoutes);
 app.use("/routes", authRoutes);
 app.use("/routes", imagenesRoutes);
+app.use("/routes", presupuestosRoutes)
 
 app.use((req, res, next) => {
   res.status(404).json({ message: "Ruta no encontrada" });
