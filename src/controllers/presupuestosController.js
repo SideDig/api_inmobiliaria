@@ -226,7 +226,11 @@ export const obtenerPresupuestosUsuario = async (req, res) => {
 
   try {
     const [presupuestos] = await conexion.query(
-      'SELECT * FROM presupuestos WHERE cliente_id = ? ORDER BY fecha_creacion DESC',
+      `SELECT p.*, pr.nombre_propiedad, pr.direccion, pr.descripcion, pr.precio, pr.habitaciones, pr.baños, pr.tamaño_terreno, pr.ubicacion
+      FROM presupuestos p
+      JOIN propiedades pr ON p.propiedad_id = pr.id
+      WHERE p.cliente_id = ?
+      ORDER BY p.fecha_creacion DESC`,
       [usuario_id]
     );
 
