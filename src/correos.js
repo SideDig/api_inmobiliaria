@@ -49,7 +49,7 @@ export default async function sendBudgetEmail(toEmail, budgetDetails) {
       from: process.env.GMAIL_EMAIL,
       to: toEmail,
       subject: 'Detalles de tu Presupuesto',
-      text: `Aquí están los detalles de tu presupuesto:\n\n${budgetDetails}`,
+      html: `${budgetDetails}`,
     };
 
     await transporter.sendMail(mailOptions);
