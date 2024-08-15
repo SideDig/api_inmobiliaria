@@ -34,7 +34,7 @@ const createTransporter = async () => {
       accessToken: accessToken.token,
     },
     tls: {
-      rejectUnauthorized: false, // Ignorar errores de certificado autofirmado (Opcional)
+      rejectUnauthorized: false,
     },
   });
 

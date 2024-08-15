@@ -5,15 +5,12 @@ export const crearPresupuesto = async (req, res) => {
   const connection = await conexion.getConnection();
   try {
     const { cliente_id, propiedad_id, agente_id, total, fecha_creacion, items, builders } = req.body;
-
-    // Validar que items sea un arreglo
     if (!Array.isArray(items)) {
       throw new Error('El campo "items" debe ser un arreglo.');
     }
 
     await connection.beginTransaction();
 
-    // 1. Crear el presupuesto en la base de datos
     const [result] = await connection.query(
       'INSERT INTO presupuestos (cliente_id, propiedad_id, agente_id, total, fecha_creacion) VALUES (?, ?, ?, ?, ?)',
       [cliente_id, propiedad_id, agente_id, total, fecha_creacion]
@@ -25,7 +22,6 @@ export const crearPresupuesto = async (req, res) => {
 
     const presupuestoId = result.insertId;
 
-    // 2. Guardar cada detalle del presupuesto y recopilar la información para el correo
     let itemsDetails = '';
     for (const item of items) {
       const builderId = builders[item.id];
@@ -41,7 +37,6 @@ export const crearPresupuesto = async (req, res) => {
             [presupuestoId, maestro[0].id, maestro[0].costo_estimado, maestro[0].tiempo_estimado]
           );
 
-          // Obtener el nombre del maestro de la tabla `maestros_albaniles`
           const [maestroInfo] = await connection.query(
             'SELECT nombre FROM maestros_albaniles WHERE id = ?',
             [builderId]
@@ -49,7 +44,6 @@ export const crearPresupuesto = async (req, res) => {
 
           const maestroNombre = maestroInfo[0]?.nombre || 'N/A';
 
-          // Añadir detalles del ítem y el maestro al cuerpo del correo
           itemsDetails += `
             <div>
               <p><strong>Ítem:</strong> ${item.nombre}</p>
@@ -67,16 +61,13 @@ export const crearPresupuesto = async (req, res) => {
       }
     }
 
-    // 3. Registrar el envío del correo en la base de datos
     await connection.query(
       'INSERT INTO correos_enviados (cliente_id, presupuesto_id, fecha_envio) VALUES (?, ?, NOW())',
       [cliente_id, presupuestoId]
     );
 
-    // 4. Confirmar la transacción
     await connection.commit();
 
-    // 5. Responder con el ID del presupuesto creado
     res.status(201).json({ id: presupuestoId });
 
   } catch (error) {
@@ -242,5 +233,36 @@ export const obtenerPresupuestosUsuario = async (req, res) => {
   } catch (error) {
     console.error('Error al obtener los presupuestos del usuario:', error);
     res.status(500).json({ error: 'Error al obtener los presupuestos del usuario.' });
+  }
+};
+
+
+export const eliminarPresupuesto = async (req, res) => {
+  const { id } = req.params;
+
+  const connection = await conexion.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    await connection.query('DELETE FROM correos_enviados WHERE presupuesto_id = ?', [id]);
+
+    await connection.query('DELETE FROM detalles_presupuesto WHERE presupuesto_id = ?', [id]);
+
+
+    const [result] = await connection.query('DELETE FROM presupuestos WHERE id = ?', [id]);
+
+    await connection.commit();
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Presupuesto no encontrado.' });
+    }
+
+    res.status(200).json({ message: 'Presupuesto eliminado correctamente.' });
+  } catch (error) {
+    await connection.rollback();
+    console.error('Error al eliminar el presupuesto:', error);
+    res.status(500).json({ error: 'Error al eliminar el presupuesto.' });
+  } finally {
+    connection.release();
   }
 };
