@@ -104,9 +104,6 @@ export const obtenerPropiedad = async (req, res) => {
 };
 
 
-
-
-
 export const insertarPropiedad = async (req, res) => {
   try {
     const [rows] = await conexion.query(
@@ -136,5 +133,39 @@ export const eliminarPropiedad = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send("No se pudo eliminar el cliente");
+  }
+};
+
+export const obtenerPropiedadesPorAgente = async (req, res) => {
+  try {
+    const agenteId = req.params.id;
+
+    const [rows] = await conexion.query(`
+      SELECT 
+        p.*, 
+        u.id AS agente_id, 
+        u.nombre AS agente_nombre, 
+        u.email AS agente_email, 
+        u.telefono AS agente_telefono,
+        u.total_ventas AS agente_total_ventas
+      FROM 
+        propiedades p
+      JOIN 
+        usuarios u 
+      ON 
+        p.agente_id = u.id
+      WHERE 
+        u.id = ?
+        AND u.rol = 'agente'
+    `, [agenteId]);
+
+    if (rows.length === 0) {
+      return res.status(404).send("No se encontraron propiedades para este agente.");
+    }
+
+    res.json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error al obtener las propiedades");
   }
 };
